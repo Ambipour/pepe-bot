@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: pepe-bot
+    env: python
+    buildCommand: ""
+    startCommand: python pepe_alert_bot.py
+    plan: free
