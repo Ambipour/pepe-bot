@@ -1,3 +1,5 @@
+from flask import Flask, request, jsonify
+
 BASE_URL = 'https://api.mexc.com'
 SYMBOL = 'ETHUSDT'
 
