@@ -58,26 +58,29 @@ def crear_orden(side, quantity):
         "timestamp": timestamp
     }
 
+    # Firma basada en el string exacto de los parámetros ordenados
     query_string = '&'.join([f"{k}={params[k]}" for k in sorted(params)])
     signature = hmac.new(
-        bytes(MEXC_API_SECRET, 'utf-8'),
-        bytes(query_string, 'utf-8'),
+        MEXC_API_SECRET.encode('utf-8'),
+        query_string.encode('utf-8'),
         hashlib.sha256
     ).hexdigest()
 
-    params["signature"] = signature
-
     headers = {
         "X-MEXC-APIKEY": MEXC_API_KEY
-        # ❌ NO pongas Content-Type aquí
     }
 
-    response = requests.post(url, headers=headers, params=params)  # se envían en URL como espera MEXC
+    # ✅ Adjuntamos la firma al final del query_string y usamos `url + ?query_string`
+    final_url = f"{url}?{query_string}&signature={signature}"
+
+    response = requests.post(final_url, headers=headers)
+
     print("📤 ORDEN ENVIADA:")
     print("Status Code:", response.status_code)
     print("Response:", response.text)
 
     return response.json()
+
 
 
 
