@@ -1,17 +1,3 @@
-import os
-import time
-import hmac
-import hashlib
-import requests
-import signal
-import sys
-from flask import Flask, request, jsonify
-
-TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN')
-TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
-MEXC_API_KEY = os.getenv('MEXC_API_KEY')
-MEXC_API_SECRET = os.getenv('MEXC_API_SECRET')
-
 BASE_URL = 'https://api.mexc.com'
 SYMBOL = 'ETHUSDT'
 
@@ -78,12 +64,23 @@ def crear_orden(side, quantity):
 
     return response.json()
 
-
 # Enviar mensajes al iniciar
 enviar_mensaje_telegram("🤖 Bot PEPE activo y escuchando señales...")
 enviar_mensaje_telegram("🤖 Bot TROG activo y escuchando señales...")
 enviar_mensaje_telegram("🤖 Bot ETH activo y listo para operar en MEXC...")
 
+# Manejo de señal de apagado solo si el bot lleva más de 5 segundos corriendo
+inicio = time.time()
+
+def al_apagar(signum, frame):
+    tiempo_activo = time.time() - inicio
+    if tiempo_activo > 5:
+        enviar_mensaje_telegram("⚠️ El bot ha sido detenido o desconectado del servidor.")
+    print("Apagando el bot...")
+    sys.exit(0)
+
+signal.signal(signal.SIGINT, al_apagar)
+signal.signal(signal.SIGTERM, al_apagar)
 
 @app.route("/webhook-pepe", methods=["POST"])
 def recibir_alerta_pepe():
