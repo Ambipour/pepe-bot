@@ -60,23 +60,25 @@ def crear_orden(side, quantity):
 
     query_string = '&'.join([f"{k}={params[k]}" for k in sorted(params)])
     signature = hmac.new(
-        MEXC_API_SECRET.encode('utf-8'),
-        query_string.encode('utf-8'),
+        bytes(MEXC_API_SECRET, 'utf-8'),
+        bytes(query_string, 'utf-8'),
         hashlib.sha256
     ).hexdigest()
 
-    params["signature"] = signature
-
     headers = {
-        "X-MEXC-APIKEY": MEXC_API_KEY
+        'X-MEXC-APIKEY': MEXC_API_KEY
     }
 
-    response = requests.post(url, headers=headers, params=params)  # params instead of data
+    final_params = params.copy()
+    final_params["signature"] = signature
+
+    response = requests.post(url, headers=headers, params=final_params)  # <-- CORRECTO: `params` no `data`
     print("📤 ORDEN ENVIADA:")
     print("Status Code:", response.status_code)
     print("Response:", response.text)
 
     return response.json()
+
 
 
 # Enviar mensajes al iniciar
