@@ -58,21 +58,26 @@ def crear_orden(side, quantity):
         "timestamp": timestamp
     }
 
+    # Crear cadena para firmar
     query_string = '&'.join([f"{k}={params[k]}" for k in sorted(params)])
+
+    # Crear firma con la clave secreta
     signature = hmac.new(
-        bytes(MEXC_API_SECRET, 'utf-8'),
-        bytes(query_string, 'utf-8'),
+        MEXC_API_SECRET.encode(),
+        query_string.encode(),
         hashlib.sha256
     ).hexdigest()
 
+    # Agregar firma al final
+    signed_query_string = f"{query_string}&signature={signature}"
+
     headers = {
-        'X-MEXC-APIKEY': MEXC_API_KEY
+        "X-MEXC-APIKEY": MEXC_API_KEY,
+        "Content-Type": "application/x-www-form-urlencoded"
     }
 
-    final_params = params.copy()
-    final_params["signature"] = signature
-
-    response = requests.post(url, headers=headers, params=final_params)  # <-- CORRECTO: `params` no `data`
+    # Enviar la orden
+    response = requests.post(url, headers=headers, data=signed_query_string)
     print("📤 ORDEN ENVIADA:")
     print("Status Code:", response.status_code)
     print("Response:", response.text)
