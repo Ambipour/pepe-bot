@@ -46,7 +46,9 @@ def obtener_saldo(asset):
 
 def crear_orden(side, quantity):
     path = '/api/v3/order'
+    url = BASE_URL + path
     timestamp = int(time.time() * 1000)
+
     params = {
         "symbol": SYMBOL,
         "side": side,
@@ -54,16 +56,28 @@ def crear_orden(side, quantity):
         "quantity": quantity,
         "timestamp": timestamp
     }
-    params['signature'] = firmar(params)
-    headers = { "X-MEXC-APIKEY": MEXC_API_KEY }
 
-    r = requests.post(BASE_URL + path, headers=headers, params=params)
+    query_string = '&'.join([f"{k}={params[k]}" for k in sorted(params)])
+    signature = hmac.new(
+        MEXC_API_SECRET.encode(),
+        query_string.encode(),
+        hashlib.sha256
+    ).hexdigest()
 
+    params["signature"] = signature
+
+    headers = {
+        "X-MEXC-APIKEY": MEXC_API_KEY,
+        "Content-Type": "application/x-www-form-urlencoded"
+    }
+
+    response = requests.post(url, headers=headers, data=params)
     print("📤 ORDEN ENVIADA:")
-    print("Status Code:", r.status_code)
-    print("Response:", r.text)
+    print("Status Code:", response.status_code)
+    print("Response:", response.text)
 
-    return r.json()
+    return response.json()
+
 
 # Enviar mensajes al iniciar
 enviar_mensaje_telegram("🤖 Bot PEPE activo y escuchando señales...")
