@@ -58,6 +58,7 @@ def crear_orden(side, quantity):
         "timestamp": timestamp
     }
 
+    # Generar firma
     query_string = '&'.join([f"{k}={params[k]}" for k in sorted(params)])
     signature = hmac.new(
         bytes(MEXC_API_SECRET, 'utf-8'),
@@ -65,20 +66,23 @@ def crear_orden(side, quantity):
         hashlib.sha256
     ).hexdigest()
 
+    # Agregar firma al final
+    params["signature"] = signature
+
+    # Solo esta cabecera es necesaria
     headers = {
-        'X-MEXC-APIKEY': MEXC_API_KEY
-        # Elimina 'Content-Type'
+        "X-MEXC-APIKEY": MEXC_API_KEY
     }
 
-    final_params = params.copy()
-    final_params["signature"] = signature
+    # IMPORTANTE: usamos `params` no `data`, y NO forzamos content-type
+    response = requests.post(url, headers=headers, params=params)
 
-    response = requests.post(url, headers=headers, params=final_params)  # params, no data
     print("📤 ORDEN ENVIADA:")
     print("Status Code:", response.status_code)
     print("Response:", response.text)
 
     return response.json()
+
 
 
 # Enviar mensajes al iniciar
