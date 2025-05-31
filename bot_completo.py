@@ -1,3 +1,4 @@
+
 import os
 import time
 import hmac
@@ -11,7 +12,6 @@ TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
 MEXC_API_KEY = os.getenv("MEXC_API_KEY")
 MEXC_API_SECRET = os.getenv("MEXC_API_SECRET")
-
 
 BASE_URL = 'https://api.mexc.com'
 SYMBOL = 'ETHUSDT'
@@ -33,16 +33,16 @@ def firmar(params):
 def obtener_saldo(asset):
     path = "/api/v3/account"
     timestamp = int(time.time() * 1000)
-    params = { "timestamp": timestamp }
-    params['signature'] = firmar(params)
-    headers = { "X-MEXC-APIKEY": MEXC_API_KEY }
+    params = {"timestamp": timestamp}
+    params["signature"] = firmar(params)
+    headers = {"X-MEXC-APIKEY": MEXC_API_KEY}
     r = requests.get(BASE_URL + path, headers=headers, params=params)
     if r.status_code != 200:
         raise Exception("No se pudo obtener saldo: " + r.text)
     balances = r.json().get("balances", [])
     for b in balances:
-        if b['asset'] == asset:
-            return float(b['free'])
+        if b["asset"] == asset:
+            return float(b["free"])
     return 0.0
 
 def crear_orden(side, quantity):
@@ -58,7 +58,6 @@ def crear_orden(side, quantity):
         "timestamp": timestamp
     }
 
-    # Generar firma
     query_string = '&'.join([f"{k}={params[k]}" for k in sorted(params)])
     signature = hmac.new(
         bytes(MEXC_API_SECRET, 'utf-8'),
@@ -66,31 +65,23 @@ def crear_orden(side, quantity):
         hashlib.sha256
     ).hexdigest()
 
-    # Agregar firma al final
     params["signature"] = signature
-
-    # Solo esta cabecera es necesaria
     headers = {
         "X-MEXC-APIKEY": MEXC_API_KEY
     }
 
-    # IMPORTANTE: usamos `params` no `data`, y NO forzamos content-type
     response = requests.post(url, headers=headers, params=params)
-
     print("📤 ORDEN ENVIADA:")
     print("Status Code:", response.status_code)
     print("Response:", response.text)
 
     return response.json()
 
-
-
 # Enviar mensajes al iniciar
 enviar_mensaje_telegram("🤖 Bot PEPE activo y escuchando señales...")
 enviar_mensaje_telegram("🤖 Bot TROG activo y escuchando señales...")
 enviar_mensaje_telegram("🤖 Bot ETH activo y listo para operar en MEXC...")
 
-# Manejo de señal de apagado solo si el bot lleva más de 5 segundos corriendo
 inicio = time.time()
 
 def al_apagar(signum, frame):
@@ -106,7 +97,6 @@ signal.signal(signal.SIGTERM, al_apagar)
 @app.route("/webhook-pepe", methods=["POST"])
 def recibir_alerta_pepe():
     data = request.json
-    print(f"📨 Alerta recibida (PEPE): {data}")
     accion = data.get("action")
     if accion == "BUY":
         enviar_mensaje_telegram("🟢 Señal de COMPRA detectada para PEPE")
@@ -119,7 +109,6 @@ def recibir_alerta_pepe():
 @app.route("/webhook-trog", methods=["POST"])
 def recibir_alerta_trog():
     data = request.json
-    print(f"📨 Alerta recibida (TROG): {data}")
     accion = data.get("action")
     if accion == "BUY":
         enviar_mensaje_telegram("🟢 Señal de COMPRA detectada para TROG")
@@ -132,7 +121,6 @@ def recibir_alerta_trog():
 @app.route("/webhook-eth", methods=["POST"])
 def recibir_alerta_eth():
     data = request.json
-    print(f"📨 Alerta recibida (ETH): {data}")
     accion = data.get("action")
     try:
         if accion == "BUY":
@@ -161,9 +149,9 @@ def recibir_alerta_eth():
             return jsonify({"error": "Acción no válida"}), 400
 
     except Exception as e:
-        print(f"❌ ERROR: {e}")
         enviar_mensaje_telegram(f"❌ Error ejecutando orden en ETH:\n{e}")
         return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
+
