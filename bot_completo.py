@@ -46,7 +46,7 @@ def obtener_saldo(asset):
     return 0.0
 
 def crear_orden(side, quantity):
-    path = '/api/v3/order'
+    path = "/api/v3/order"
     url = BASE_URL + path
     timestamp = int(time.time() * 1000)
 
@@ -58,29 +58,32 @@ def crear_orden(side, quantity):
         "timestamp": timestamp
     }
 
-    # Firma basada en el string exacto de los parámetros ordenados
+    # Construcción de query string correcta
     query_string = '&'.join([f"{k}={params[k]}" for k in sorted(params)])
+
+    # Firma con HMAC SHA256 en binario
     signature = hmac.new(
-        MEXC_API_SECRET.encode('utf-8'),
-        query_string.encode('utf-8'),
+        MEXC_API_SECRET.encode(),
+        query_string.encode(),
         hashlib.sha256
     ).hexdigest()
 
+    # Agregamos la firma al diccionario de parámetros
+    params["signature"] = signature
+
+    # Encabezado adecuado
     headers = {
         "X-MEXC-APIKEY": MEXC_API_KEY
     }
 
-    # ✅ Adjuntamos la firma al final del query_string y usamos `url + ?query_string`
-    final_url = f"{url}?{query_string}&signature={signature}"
-
-    response = requests.post(final_url, headers=headers)
+    # ✅ Enviar los datos con `params` (no `data`), sin `Content-Type`
+    response = requests.post(url, headers=headers, params=params)
 
     print("📤 ORDEN ENVIADA:")
     print("Status Code:", response.status_code)
     print("Response:", response.text)
 
     return response.json()
-
 
 
 
@@ -91,15 +94,6 @@ enviar_mensaje_telegram("🤖 Bot ETH activo y listo para operar en MEXC...")
 
 inicio = time.time()
 
-def al_apagar(signum, frame):
-    tiempo_activo = time.time() - inicio
-    if tiempo_activo > 5:
-        enviar_mensaje_telegram("⚠️ El bot ha sido detenido o desconectado del servidor.")
-    print("Apagando el bot...")
-    sys.exit(0)
-
-signal.signal(signal.SIGINT, al_apagar)
-signal.signal(signal.SIGTERM, al_apagar)
 
 @app.route("/webhook-pepe", methods=["POST"])
 def recibir_alerta_pepe():
