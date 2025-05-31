@@ -70,14 +70,6 @@ enviar_mensaje_telegram("🤖 Bot PEPE activo y escuchando señales...")
 enviar_mensaje_telegram("🤖 Bot TROG activo y escuchando señales...")
 enviar_mensaje_telegram("🤖 Bot ETH activo y listo para operar en MEXC...")
 
-# Manejo de apagado
-def al_apagar(signum, frame):
-    enviar_mensaje_telegram("⚠️ El bot ha sido detenido o desconectado del servidor.")
-    print("Apagando el bot...")
-    sys.exit(0)
-
-signal.signal(signal.SIGINT, al_apagar)
-signal.signal(signal.SIGTERM, al_apagar)
 
 @app.route("/webhook-pepe", methods=["POST"])
 def recibir_alerta_pepe():
