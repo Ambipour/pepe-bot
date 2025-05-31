@@ -1,4 +1,17 @@
+import os
+import time
+import hmac
+import hashlib
+import signal
+import sys
+import requests
 from flask import Flask, request, jsonify
+
+TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
+TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
+MEXC_API_KEY = os.getenv("MEXC_API_KEY")
+MEXC_API_SECRET = os.getenv("MEXC_API_SECRET")
+
 
 BASE_URL = 'https://api.mexc.com'
 SYMBOL = 'ETHUSDT'
