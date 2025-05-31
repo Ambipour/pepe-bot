@@ -69,10 +69,9 @@ def crear_orden(side, quantity):
 
     headers = {
         "X-MEXC-APIKEY": MEXC_API_KEY,
-        "Content-Type": "application/x-www-form-urlencoded"
     }
 
-    response = requests.post(url, headers=headers, data=params)
+    response = requests.post(url, headers=headers, params=params)
     print("📤 ORDEN ENVIADA:")
     print("Status Code:", response.status_code)
     print("Response:", response.text)
