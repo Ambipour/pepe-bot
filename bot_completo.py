@@ -50,7 +50,6 @@ def crear_orden(side, quantity):
     url = BASE_URL + path
     timestamp = int(time.time() * 1000)
 
-    # 1. Armar los parámetros base (sin firma)
     params = {
         "symbol": SYMBOL,
         "side": side,
@@ -59,34 +58,27 @@ def crear_orden(side, quantity):
         "timestamp": timestamp
     }
 
-    # 2. Construir el query_string ordenado (orden alfabético de claves)
     query_string = '&'.join([f"{k}={params[k]}" for k in sorted(params)])
-
-    # 3. Firmar esa cadena con HMAC-SHA256 usando tu clave secreta
     signature = hmac.new(
-        MEXC_API_SECRET.encode('utf-8'),
-        query_string.encode('utf-8'),
+        bytes(MEXC_API_SECRET, 'utf-8'),
+        bytes(query_string, 'utf-8'),
         hashlib.sha256
     ).hexdigest()
 
-    # 4. Construir el cuerpo final en formato form-data: query_string & signature
-    body = f"{query_string}&signature={signature}"
+    params["signature"] = signature
 
-    # 5. Cabeceras: sólo la APIKEY
     headers = {
-        "X-MEXC-APIKEY": MEXC_API_KEY,
-        "Content-Type": "application/x-www-form-urlencoded"
+        "X-MEXC-APIKEY": MEXC_API_KEY
+        # ❌ NO pongas Content-Type aquí
     }
 
-    # 6. Enviar la petición: la firma y los parámetros en el cuerpo (data=body)
-    response = requests.post(url, headers=headers, data=body)
-
-    # Log para debug
+    response = requests.post(url, headers=headers, params=params)  # se envían en URL como espera MEXC
     print("📤 ORDEN ENVIADA:")
     print("Status Code:", response.status_code)
     print("Response:", response.text)
 
     return response.json()
+
 
 
 # Enviar mensajes al iniciar
