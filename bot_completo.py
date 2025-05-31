@@ -60,23 +60,24 @@ def crear_orden(side, quantity):
 
     query_string = '&'.join([f"{k}={params[k]}" for k in sorted(params)])
     signature = hmac.new(
-        MEXC_API_SECRET.encode(),
-        query_string.encode(),
+        MEXC_API_SECRET.encode('utf-8'),
+        query_string.encode('utf-8'),
         hashlib.sha256
     ).hexdigest()
 
     params["signature"] = signature
 
     headers = {
-        "X-MEXC-APIKEY": MEXC_API_KEY,
+        "X-MEXC-APIKEY": MEXC_API_KEY
     }
 
-    response = requests.post(url, headers=headers, params=params)
+    response = requests.post(url, headers=headers, params=params)  # params instead of data
     print("📤 ORDEN ENVIADA:")
     print("Status Code:", response.status_code)
     print("Response:", response.text)
 
     return response.json()
+
 
 # Enviar mensajes al iniciar
 enviar_mensaje_telegram("🤖 Bot PEPE activo y escuchando señales...")
