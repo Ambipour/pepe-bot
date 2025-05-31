@@ -56,7 +56,13 @@ def crear_orden(side, quantity):
     }
     params['signature'] = firmar(params)
     headers = { "X-MEXC-APIKEY": MEXC_API_KEY }
+
     r = requests.post(BASE_URL + path, headers=headers, params=params)
+
+    print("📤 ORDEN ENVIADA:")
+    print("Status Code:", r.status_code)
+    print("Response:", r.text)
+
     return r.json()
 
 # Enviar mensajes al iniciar
